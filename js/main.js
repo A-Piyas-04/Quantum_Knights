@@ -38,42 +38,38 @@ class QuantumKnightsApp {
         this.scene = createScene();
         this.camera = createCamera();
         this.renderer = createRenderer();
-        
         // Add renderer to DOM
         const container = document.getElementById('canvas-container');
         container.appendChild(this.renderer.domElement);
-        
         // Create controls
         // Remove OrbitControls for fixed camera
         // this.controls = createControls(this.camera, this.renderer.domElement); // Remove or comment out
-        
         // Create lighting
         const lighting = createLighting();
         this.scene.add(lighting.directionalLight);
         this.scene.add(lighting.ambientLight);
-        
         // Create terrain
         this.terrain = createTerrain();
         this.scene.add(this.terrain);
-        
+        // Add soccer field and goal
+        this.loadSoccerFieldAndGoal();
+        // Add U-shaped building arrangement
+        this.loadUShapeBuildings();
+        // Add street lights
+        this.loadStreetLights();
         // Enemy manager removed for campus environment
-        
         // Load character model
         loadCharacter(this.scene, (character) => {
             this.character = character;
             // Recreate camera with character reference
             this.camera = createCamera(this.character);
             console.log('Character added to scene');
-            
             // Enemies removed for peaceful campus environment
         });
-        
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
-        
         // Setup keyboard controls
         this.setupKeyboardControls();
-        
         // Start render loop
         this.animate();
     }
@@ -299,3 +295,156 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export default QuantumKnightsApp;
+
+
+    // Utility to load soccer field and goal
+    loadSoccerFieldAndGoal() {
+        const loader = new THREE.GLTFLoader();
+        // Soccer Field
+        loader.load('./models/Soccer Field.glb', (gltf) => {
+            const field = gltf.scene;
+            field.scale.set(15, 15, 15);
+            field.position.set(-120, 0.1, 120); // Example position, adjust as needed
+            field.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (child.material) child.material.needsUpdate = true;
+                }
+            });
+            this.scene.add(field);
+            // Soccer Goal 1
+            loader.load('./models/Soccer goal.glb', (goalGltf) => {
+                const goal1 = goalGltf.scene;
+                goal1.scale.set(4, 4, 4);
+                goal1.position.set(-120, 0.2, 135); // Place at one end of field
+                goal1.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        if (child.material) child.material.needsUpdate = true;
+                    }
+                });
+                this.scene.add(goal1);
+                // Soccer Goal 2 (opposite end)
+                loader.load('./models/Soccer goal.glb', (goalGltf2) => {
+                    const goal2 = goalGltf2.scene;
+                    goal2.scale.set(4, 4, 4);
+                    goal2.position.set(-120, 0.2, 105); // Opposite end
+                    goal2.rotation.y = Math.PI; // Face opposite direction
+                    goal2.traverse(child => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            if (child.material) child.material.needsUpdate = true;
+                        }
+                    });
+                    this.scene.add(goal2);
+                });
+            });
+        });
+    }
+    // Utility to load U-shaped building arrangement
+    loadUShapeBuildings() {
+        const loader = new THREE.GLTFLoader();
+        // Center building with door
+        loader.load('./models/Building Red with Door.glb', (gltf) => {
+            const centerBuilding = gltf.scene;
+            centerBuilding.scale.set(6, 6, 6);
+            centerBuilding.position.set(-100, 0.1, 80); // Center of academic area 1
+            centerBuilding.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (child.material) child.material.needsUpdate = true;
+                }
+            });
+            this.scene.add(centerBuilding);
+            // Left wing
+            loader.load('./models/Building Red.glb', (gltfLeft) => {
+                const leftBuilding = gltfLeft.scene;
+                leftBuilding.scale.set(6, 6, 6);
+                leftBuilding.position.set(-120, 0.1, 80); // Left of center
+                leftBuilding.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        if (child.material) child.material.needsUpdate = true;
+                    }
+                });
+                this.scene.add(leftBuilding);
+                // Right wing
+                loader.load('./models/Building Red.glb', (gltfRight) => {
+                    const rightBuilding = gltfRight.scene;
+                    rightBuilding.scale.set(6, 6, 6);
+                    rightBuilding.position.set(-80, 0.1, 80); // Right of center
+                    rightBuilding.traverse(child => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            if (child.material) child.material.needsUpdate = true;
+                        }
+                    });
+                    this.scene.add(rightBuilding);
+                    // Top left
+                    loader.load('./models/Building Red.glb', (gltfTopLeft) => {
+                        const topLeftBuilding = gltfTopLeft.scene;
+                        topLeftBuilding.scale.set(6, 6, 6);
+                        topLeftBuilding.position.set(-120, 0.1, 100); // Top left
+                        topLeftBuilding.traverse(child => {
+                            if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                                if (child.material) child.material.needsUpdate = true;
+                            }
+                        });
+                        this.scene.add(topLeftBuilding);
+                        // Top right
+                        loader.load('./models/Building Red.glb', (gltfTopRight) => {
+                            const topRightBuilding = gltfTopRight.scene;
+                            topRightBuilding.scale.set(6, 6, 6);
+                            topRightBuilding.position.set(-80, 0.1, 100); // Top right
+                            topRightBuilding.traverse(child => {
+                                if (child.isMesh) {
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                    if (child.material) child.material.needsUpdate = true;
+                                }
+                            });
+                            this.scene.add(topRightBuilding);
+                        });
+                    });
+                });
+            });
+        });
+    }
+    });
+}
+
+// Utility to load multiple street lights throughout the campus
+loadStreetLights() {
+    const loader = new THREE.GLTFLoader();
+    // Example positions for street lights (can be expanded)
+    const positions = [
+        [-110, 0.1, 60], [-90, 0.1, 60], [-130, 0.1, 100], [-70, 0.1, 100],
+        [0, 0.1, 0], [20, 0.1, 0], [-20, 0.1, 0], [0, 0.1, 20], [0, 0.1, -20],
+        [100, 0.1, -120], [120, 0.1, -120], [140, 0.1, -120], [160, 0.1, -120],
+        [130, 0.1, -100], [130, 0.1, -140], [80, 0.1, 100], [100, 0.1, 80],
+        [-100, 0.1, -100], [-120, 0.1, -120], [120, 0.1, 120]
+    ];
+    positions.forEach(pos => {
+        loader.load('./models/Street Light.glb', (gltf) => {
+            const light = gltf.scene;
+            light.scale.set(2.5, 2.5, 2.5);
+            light.position.set(pos[0], pos[1], pos[2]);
+            light.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (child.material) child.material.needsUpdate = true;
+                }
+            });
+            this.scene.add(light);
+        });
+    });
+}

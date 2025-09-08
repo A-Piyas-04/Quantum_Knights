@@ -10,7 +10,7 @@ export function createTerrain() {
     // Keep terrain flat (no height variation for campus)
     // Create campus grass material with brighter green
     const grassMaterial = new THREE.MeshLambertMaterial({
-        color: 0x66cc66, // Brighter campus green
+        color: 0x99ff99, // Lighter campus green
         side: THREE.DoubleSide,
         wireframe: false
     });
@@ -46,16 +46,15 @@ export function createTerrain() {
 // Function to add campus roads and pathways
 function addCampusRoads(terrainGroup) {
     // Main road running north-south (scaled for bigger terrain)
-    const mainRoadGeometry = new THREE.PlaneGeometry(10, 400);
+    const mainRoadGeometry = new THREE.PlaneGeometry(22, 400); // Increased width
     const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x404040 });
     const mainRoad = new THREE.Mesh(mainRoadGeometry, roadMaterial);
     mainRoad.rotation.x = -Math.PI / 2;
     mainRoad.position.set(0, 0.05, 0);
     mainRoad.receiveShadow = true;
     terrainGroup.add(mainRoad);
-    
     // Cross road running east-west (scaled for bigger terrain)
-    const crossRoadGeometry = new THREE.PlaneGeometry(400, 10);
+    const crossRoadGeometry = new THREE.PlaneGeometry(400, 22); // Increased width
     const crossRoad = new THREE.Mesh(crossRoadGeometry, roadMaterial);
     crossRoad.rotation.x = -Math.PI / 2;
     crossRoad.position.set(0, 0.05, 0);
@@ -125,8 +124,8 @@ function addBuildingAreas(terrainGroup) {
 
 // Function to add a large artificial campus lake
 function addCampusLake(terrainGroup) {
-    // Create large lake geometry - irregular shape using multiple circles
-    const mainLakeGeometry = new THREE.CircleGeometry(35, 32);
+    // Make the main lake 5x larger
+    const mainLakeGeometry = new THREE.CircleGeometry(35 * 5, 64);
     const lakeMaterial = new THREE.MeshLambertMaterial({ 
         color: 0x1E90FF, // Deep sky blue
         transparent: true,
@@ -134,21 +133,45 @@ function addCampusLake(terrainGroup) {
     });
     const mainLake = new THREE.Mesh(mainLakeGeometry, lakeMaterial);
     mainLake.rotation.x = -Math.PI / 2;
-    mainLake.position.set(130, 0.1, -130); // Positioned in corner of bigger campus
+    mainLake.position.set(130, 0.1, -130);
     mainLake.receiveShadow = true;
     terrainGroup.add(mainLake);
-    
-    // Add smaller connected pond (adjusted for bigger terrain)
-    const smallPondGeometry = new THREE.CircleGeometry(20, 24);
+    // Add platform over the lake (circular wooden platform)
+    const platformGeometry = new THREE.CylinderGeometry(18, 18, 1, 48);
+    const platformMaterial = new THREE.MeshLambertMaterial({ color: 0xdeb887 }); // Wood color
+    const platform = new THREE.Mesh(platformGeometry, platformMaterial);
+    platform.position.set(130, 1.1, -130);
+    platform.rotation.x = -Math.PI / 2;
+    platform.receiveShadow = true;
+    terrainGroup.add(platform);
+    // Add bridge model to connect shore to platform
+    if (typeof THREE.GLTFLoader !== 'undefined') {
+        const loader = new THREE.GLTFLoader();
+        loader.load('./models/Bridge.glb', (gltf) => {
+            const bridge = gltf.scene;
+            bridge.scale.set(10, 10, 10);
+            bridge.position.set(130, 1.2, -90); // Position between shore and platform
+            bridge.rotation.y = Math.PI / 2;
+            bridge.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (child.material) child.material.needsUpdate = true;
+                }
+            });
+            terrainGroup.add(bridge);
+        });
+    }
+    // Add smaller connected pond (optional, scale up for consistency)
+    const smallPondGeometry = new THREE.CircleGeometry(20 * 5, 48);
     const smallPond = new THREE.Mesh(smallPondGeometry, lakeMaterial);
     smallPond.rotation.x = -Math.PI / 2;
     smallPond.position.set(90, 0.1, -100);
     smallPond.receiveShadow = true;
     terrainGroup.add(smallPond);
-    
-    // Lake border/shore area (adjusted for bigger terrain)
-    const shoreMaterial = new THREE.MeshLambertMaterial({ color: 0xC2B280 }); // Sandy shore
-    const shoreGeometry = new THREE.RingGeometry(35, 40, 32);
+    // Lake border/shore area (scale up for larger lake)
+    const shoreMaterial = new THREE.MeshLambertMaterial({ color: 0xC2B280 });
+    const shoreGeometry = new THREE.RingGeometry(35 * 5, 40 * 5, 64);
     const shore = new THREE.Mesh(shoreGeometry, shoreMaterial);
     shore.rotation.x = -Math.PI / 2;
     shore.position.set(130, 0.05, -130);
