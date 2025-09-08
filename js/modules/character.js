@@ -7,8 +7,8 @@ export function loadCharacter(scene, onLoadCallback) {
     // Create GLTF loader
     const loader = new THREE.GLTFLoader();
     
-    // Model URL from ReadyPlayer.me
-    const modelUrl = 'https://models.readyplayer.me/64f90f7c1b2ff7a1f0e58f8b.glb';
+    // Local model path
+    const modelUrl = './models/LoPo Kratos.glb';
     
     // Load the character model
     loader.load(

@@ -167,16 +167,21 @@ class QuantumKnightsApp {
     updateCameraFollow() {
         if (!this.character) return;
         
-        // Camera follows slightly behind the character
-        const offset = new THREE.Vector3(0, 15, 20);
+        // Fixed offset relative to character: (0, +5, -10)
+        const offset = new THREE.Vector3(0, 5, -10);
+        
+        // Apply character's rotation to the offset
+        offset.applyQuaternion(this.character.quaternion);
+        
+        // Calculate desired camera position
         const desiredPosition = this.character.position.clone().add(offset);
         
         // Smooth camera movement
-        this.camera.position.lerp(desiredPosition, 0.05);
+        this.camera.position.lerp(desiredPosition, 0.08);
         
-        // Look at character
+        // Look at character (slightly above)
         const lookAtTarget = this.character.position.clone();
-        lookAtTarget.y += 2; // Look slightly above character
+        lookAtTarget.y += 2;
         this.camera.lookAt(lookAtTarget);
     }
     
