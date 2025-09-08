@@ -287,24 +287,13 @@ class QuantumKnightsApp {
             }
         }
     }
-}
-
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new QuantumKnightsApp();
-});
-
-export default QuantumKnightsApp;
-
-
     // Utility to load soccer field and goal
     loadSoccerFieldAndGoal() {
         const loader = new THREE.GLTFLoader();
-        // Soccer Field
         loader.load('./models/Soccer Field.glb', (gltf) => {
             const field = gltf.scene;
             field.scale.set(15, 15, 15);
-            field.position.set(-120, 0.1, 120); // Example position, adjust as needed
+            field.position.set(-120, 0.1, 120);
             field.traverse(child => {
                 if (child.isMesh) {
                     child.castShadow = true;
@@ -313,11 +302,10 @@ export default QuantumKnightsApp;
                 }
             });
             this.scene.add(field);
-            // Soccer Goal 1
             loader.load('./models/Soccer goal.glb', (goalGltf) => {
                 const goal1 = goalGltf.scene;
                 goal1.scale.set(4, 4, 4);
-                goal1.position.set(-120, 0.2, 135); // Place at one end of field
+                goal1.position.set(-120, 0.2, 135);
                 goal1.traverse(child => {
                     if (child.isMesh) {
                         child.castShadow = true;
@@ -326,12 +314,11 @@ export default QuantumKnightsApp;
                     }
                 });
                 this.scene.add(goal1);
-                // Soccer Goal 2 (opposite end)
                 loader.load('./models/Soccer goal.glb', (goalGltf2) => {
                     const goal2 = goalGltf2.scene;
                     goal2.scale.set(4, 4, 4);
-                    goal2.position.set(-120, 0.2, 105); // Opposite end
-                    goal2.rotation.y = Math.PI; // Face opposite direction
+                    goal2.position.set(-120, 0.2, 105);
+                    goal2.rotation.y = Math.PI;
                     goal2.traverse(child => {
                         if (child.isMesh) {
                             child.castShadow = true;
@@ -347,11 +334,10 @@ export default QuantumKnightsApp;
     // Utility to load U-shaped building arrangement
     loadUShapeBuildings() {
         const loader = new THREE.GLTFLoader();
-        // Center building with door
         loader.load('./models/Building Red with Door.glb', (gltf) => {
             const centerBuilding = gltf.scene;
             centerBuilding.scale.set(6, 6, 6);
-            centerBuilding.position.set(-100, 0.1, 80); // Center of academic area 1
+            centerBuilding.position.set(-100, 0.1, 80);
             centerBuilding.traverse(child => {
                 if (child.isMesh) {
                     child.castShadow = true;
@@ -360,11 +346,10 @@ export default QuantumKnightsApp;
                 }
             });
             this.scene.add(centerBuilding);
-            // Left wing
             loader.load('./models/Building Red.glb', (gltfLeft) => {
                 const leftBuilding = gltfLeft.scene;
                 leftBuilding.scale.set(6, 6, 6);
-                leftBuilding.position.set(-120, 0.1, 80); // Left of center
+                leftBuilding.position.set(-120, 0.1, 80);
                 leftBuilding.traverse(child => {
                     if (child.isMesh) {
                         child.castShadow = true;
@@ -373,11 +358,10 @@ export default QuantumKnightsApp;
                     }
                 });
                 this.scene.add(leftBuilding);
-                // Right wing
                 loader.load('./models/Building Red.glb', (gltfRight) => {
                     const rightBuilding = gltfRight.scene;
                     rightBuilding.scale.set(6, 6, 6);
-                    rightBuilding.position.set(-80, 0.1, 80); // Right of center
+                    rightBuilding.position.set(-80, 0.1, 80);
                     rightBuilding.traverse(child => {
                         if (child.isMesh) {
                             child.castShadow = true;
@@ -386,11 +370,10 @@ export default QuantumKnightsApp;
                         }
                     });
                     this.scene.add(rightBuilding);
-                    // Top left
                     loader.load('./models/Building Red.glb', (gltfTopLeft) => {
                         const topLeftBuilding = gltfTopLeft.scene;
                         topLeftBuilding.scale.set(6, 6, 6);
-                        topLeftBuilding.position.set(-120, 0.1, 100); // Top left
+                        topLeftBuilding.position.set(-120, 0.1, 100);
                         topLeftBuilding.traverse(child => {
                             if (child.isMesh) {
                                 child.castShadow = true;
@@ -399,11 +382,10 @@ export default QuantumKnightsApp;
                             }
                         });
                         this.scene.add(topLeftBuilding);
-                        // Top right
                         loader.load('./models/Building Red.glb', (gltfTopRight) => {
                             const topRightBuilding = gltfTopRight.scene;
                             topRightBuilding.scale.set(6, 6, 6);
-                            topRightBuilding.position.set(-80, 0.1, 100); // Top right
+                            topRightBuilding.position.set(-80, 0.1, 100);
                             topRightBuilding.traverse(child => {
                                 if (child.isMesh) {
                                     child.castShadow = true;
@@ -418,33 +400,37 @@ export default QuantumKnightsApp;
             });
         });
     }
-    });
+    // Utility to load multiple street lights throughout the campus
+    loadStreetLights() {
+        const loader = new THREE.GLTFLoader();
+        const positions = [
+            [-110, 0.1, 60], [-90, 0.1, 60], [-130, 0.1, 100], [-70, 0.1, 100],
+            [0, 0.1, 0], [20, 0.1, 0], [-20, 0.1, 0], [0, 0.1, 20], [0, 0.1, -20],
+            [100, 0.1, -120], [120, 0.1, -120], [140, 0.1, -120], [160, 0.1, -120],
+            [130, 0.1, -100], [130, 0.1, -140], [80, 0.1, 100], [100, 0.1, 80],
+            [-100, 0.1, -100], [-120, 0.1, -120], [120, 0.1, 120]
+        ];
+        positions.forEach(pos => {
+            loader.load('./models/Street Light.glb', (gltf) => {
+                const light = gltf.scene;
+                light.scale.set(2.5, 2.5, 2.5);
+                light.position.set(pos[0], pos[1], pos[2]);
+                light.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        if (child.material) child.material.needsUpdate = true;
+                    }
+                });
+                this.scene.add(light);
+            });
+        });
+    }
 }
 
-// Utility to load multiple street lights throughout the campus
-loadStreetLights() {
-    const loader = new THREE.GLTFLoader();
-    // Example positions for street lights (can be expanded)
-    const positions = [
-        [-110, 0.1, 60], [-90, 0.1, 60], [-130, 0.1, 100], [-70, 0.1, 100],
-        [0, 0.1, 0], [20, 0.1, 0], [-20, 0.1, 0], [0, 0.1, 20], [0, 0.1, -20],
-        [100, 0.1, -120], [120, 0.1, -120], [140, 0.1, -120], [160, 0.1, -120],
-        [130, 0.1, -100], [130, 0.1, -140], [80, 0.1, 100], [100, 0.1, 80],
-        [-100, 0.1, -100], [-120, 0.1, -120], [120, 0.1, 120]
-    ];
-    positions.forEach(pos => {
-        loader.load('./models/Street Light.glb', (gltf) => {
-            const light = gltf.scene;
-            light.scale.set(2.5, 2.5, 2.5);
-            light.position.set(pos[0], pos[1], pos[2]);
-            light.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                    if (child.material) child.material.needsUpdate = true;
-                }
-            });
-            this.scene.add(light);
-        });
-    });
-}
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new QuantumKnightsApp();
+});
+
+export default QuantumKnightsApp;
