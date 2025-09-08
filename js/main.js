@@ -5,6 +5,7 @@ import { createControls } from './modules/controls.js';
 import { createLighting } from './modules/lighting.js';
 import { createTerrain, getTerrainHeight } from './modules/terrain.js';
 import { loadCharacter } from './modules/character.js';
+import { EnemyManager } from './modules/enemy.js';
 
 class QuantumKnightsApp {
     constructor() {
@@ -14,6 +15,7 @@ class QuantumKnightsApp {
         this.controls = null;
         this.terrain = null;
         this.character = null;
+        this.enemyManager = null;
         
         // Movement and input state
         this.keys = {
@@ -28,7 +30,7 @@ class QuantumKnightsApp {
         this.isAttacking = false;
         this.attackDuration = 500; // milliseconds
         this.projectiles = [];
-        this.projectileSpeed = 1.2;
+        this.projectileSpeed = 1.5;
         
         this.init();
     }
@@ -56,12 +58,18 @@ class QuantumKnightsApp {
         this.terrain = createTerrain();
         this.scene.add(this.terrain);
         
+        // Initialize enemy manager
+        this.enemyManager = new EnemyManager(this.scene, this.terrain);
+        
         // Load character model
         loadCharacter(this.scene, (character) => {
             this.character = character;
             // Recreate camera with character reference
             this.camera = createCamera(this.character);
             console.log('Character added to scene');
+            
+            // Spawn enemies after character is loaded
+            this.enemyManager.spawnEnemies(5);
         });
         
         // Handle window resize
@@ -84,6 +92,8 @@ class QuantumKnightsApp {
         requestAnimationFrame(() => this.animate());
         // Update character movement
         this.updateCharacterMovement();
+        // Update enemies
+        this.updateEnemies();
         // Update projectiles
         this.updateProjectiles();
         // Update camera to follow character
@@ -199,12 +209,18 @@ class QuantumKnightsApp {
         if (intersects.length > 0) {
             terrainHeight = intersects[0].point.y;
         }
-        this.character.position.y = terrainHeight + 0.5;
+        this.character.position.y = terrainHeight + 4.0;
+        this.character.scale.set(3.5, 3.5, 3.5);
     }
     
     updateCameraFollow() {
         if (!this.character || !this.camera.followCharacter) return;
         this.camera.followCharacter();
+    }
+    
+    updateEnemies() {
+        if (!this.enemyManager || !this.character) return;
+        this.enemyManager.update(this.character.position);
     }
     
     handleAttack() {
@@ -251,20 +267,22 @@ class QuantumKnightsApp {
     
     spawnProjectile() {
         if (!this.character) return;
-        // Create projectile geometry and material
-        const geometry = new THREE.SphereGeometry(0.5, 8, 8);
-        const material = new THREE.MeshLambertMaterial({ color: 0x00aaff });
-        const projectile = new THREE.Mesh(geometry, material);
-        // Position projectile in front of character
-        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, this.character.rotation.y, 0));
-        projectile.position.copy(this.character.position).add(direction.clone().multiplyScalar(2.5));
-        projectile.userData = {
-            direction,
-            spawnTime: performance.now()
-        };
-        projectile.castShadow = true;
-        this.scene.add(projectile);
-        this.projectiles.push(projectile);
+        // Use GLTFLoader to load Axe.glb as projectile
+        const loader = new THREE.GLTFLoader();
+        loader.load('./models/Axe.glb', (gltf) => {
+            const axe = gltf.scene;
+            axe.scale.set(4.7, 4.7, 4.7);
+            // Position axe in front of character
+            const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, this.character.rotation.y, 0));
+            axe.position.copy(this.character.position).add(direction.clone().multiplyScalar(2.5));
+            axe.userData = {
+                direction,
+                spawnTime: performance.now()
+            };
+            axe.castShadow = true;
+            this.scene.add(axe);
+            this.projectiles.push(axe);
+        });
     }
     updateProjectiles() {
         const now = performance.now();
