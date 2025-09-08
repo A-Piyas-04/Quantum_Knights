@@ -56,6 +56,8 @@ class QuantumKnightsApp {
         // Load character model
         loadCharacter(this.scene, (character) => {
             this.character = character;
+            // Recreate camera with character reference
+            this.camera = createCamera(this.character);
             console.log('Character added to scene');
         });
         
@@ -166,21 +168,8 @@ class QuantumKnightsApp {
     }
     
     updateCameraFollow() {
-        if (!this.character) return;
-        // Camera offset relative to character (fixed above and behind)
-        const offset = new THREE.Vector3(0, 10, 15); // 10 units above, 15 units behind
-        // Get character's forward direction
-        let forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(this.character.quaternion);
-        // Calculate camera position: always above and behind character
-        const cameraPosition = this.character.position.clone()
-            .add(forward.clone().multiplyScalar(-offset.z)) // behind
-            .add(new THREE.Vector3(0, offset.y, 0)); // above
-        this.camera.position.lerp(cameraPosition, 0.3); // Smooth follow
-        // Always look at character (slightly above for better view)
-        const lookAtTarget = this.character.position.clone();
-        lookAtTarget.y += 2;
-        this.camera.lookAt(lookAtTarget);
+        if (!this.character || !this.camera.followCharacter) return;
+        this.camera.followCharacter();
     }
     
     handleAttack() {
