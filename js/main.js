@@ -21,11 +21,14 @@ class QuantumKnightsApp {
             a: false,
             s: false,
             d: false,
+            ctrl: false,
             space: false
         };
         this.moveSpeed = 0.3;
         this.isAttacking = false;
         this.attackDuration = 500; // milliseconds
+        this.projectiles = [];
+        this.projectileSpeed = 1.2;
         
         this.init();
     }
@@ -81,6 +84,8 @@ class QuantumKnightsApp {
         requestAnimationFrame(() => this.animate());
         // Update character movement
         this.updateCharacterMovement();
+        // Update projectiles
+        this.updateProjectiles();
         // Update camera to follow character
         this.updateCameraFollow();
         // Remove controls update for fixed camera
@@ -105,6 +110,11 @@ class QuantumKnightsApp {
                 case 'KeyD':
                     this.keys.d = true;
                     break;
+                case 'ControlLeft':
+                case 'ControlRight':
+                    this.keys.ctrl = true;
+                    this.spawnProjectile();
+                    break;
                 case 'Space':
                     event.preventDefault();
                     this.keys.space = true;
@@ -112,7 +122,6 @@ class QuantumKnightsApp {
                     break;
             }
         });
-        
         document.addEventListener('keyup', (event) => {
             switch(event.code) {
                 case 'KeyW':
@@ -127,6 +136,10 @@ class QuantumKnightsApp {
                 case 'KeyD':
                     this.keys.d = false;
                     break;
+                case 'ControlLeft':
+                case 'ControlRight':
+                    this.keys.ctrl = false;
+                    break;
                 case 'Space':
                     this.keys.space = false;
                     break;
@@ -136,35 +149,40 @@ class QuantumKnightsApp {
     
     updateCharacterMovement() {
         if (!this.character) return;
-        
         let moveX = 0;
         let moveZ = 0;
-        
         // Calculate movement based on pressed keys
-        if (this.keys.w) moveZ -= this.moveSpeed; // Forward
-        if (this.keys.s) moveZ += this.moveSpeed; // Backward
-        if (this.keys.a) moveX -= this.moveSpeed; // Left
-        if (this.keys.d) moveX += this.moveSpeed; // Right
-        
+        if (this.keys.w) moveZ -= this.moveSpeed;
+        if (this.keys.s) moveZ += this.moveSpeed;
+        if (this.keys.a) moveX -= this.moveSpeed;
+        if (this.keys.d) moveX += this.moveSpeed;
         // Apply movement to character
         if (moveX !== 0 || moveZ !== 0) {
             this.character.position.x += moveX;
             this.character.position.z += moveZ;
-            
             // Keep character within terrain bounds (200x200 terrain)
             this.character.position.x = Math.max(-90, Math.min(90, this.character.position.x));
             this.character.position.z = Math.max(-90, Math.min(90, this.character.position.z));
-            
-            // Rotate character to face movement direction
-            if (moveX !== 0 || moveZ !== 0) {
-                const angle = Math.atan2(moveX, moveZ);
-                this.character.rotation.y = angle;
-            }
+            // Smoothly rotate character to face movement direction
+            const targetAngle = Math.atan2(moveX, moveZ);
+            const currentAngle = this.character.rotation.y;
+            const lerpSpeed = 0.15;
+            let delta = targetAngle - currentAngle;
+            // Normalize delta to [-PI, PI]
+            delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+            this.character.rotation.y += delta * lerpSpeed;
         }
-        
-        // Always keep character above terrain
-        const terrainHeight = getTerrainHeight(this.character.position.x, this.character.position.z);
-        this.character.position.y = terrainHeight + 1; // 1 unit above terrain to keep feet above ground
+        // Raycast from above character straight down to terrain
+        const rayOrigin = new THREE.Vector3(this.character.position.x, 100, this.character.position.z);
+        const rayDirection = new THREE.Vector3(0, -1, 0);
+        const raycaster = new THREE.Raycaster(rayOrigin, rayDirection);
+        const terrainMeshes = this.terrain.children.filter(obj => obj.isMesh);
+        const intersects = raycaster.intersectObjects(terrainMeshes, true);
+        let terrainHeight = getTerrainHeight(this.character.position.x, this.character.position.z);
+        if (intersects.length > 0) {
+            terrainHeight = intersects[0].point.y;
+        }
+        this.character.position.y = terrainHeight + 0.5;
     }
     
     updateCameraFollow() {
@@ -212,6 +230,39 @@ class QuantumKnightsApp {
         // Execute attack animation
         scaleUp();
         setTimeout(scaleDown, this.attackDuration);
+    }
+    
+    spawnProjectile() {
+        if (!this.character) return;
+        // Create projectile geometry and material
+        const geometry = new THREE.SphereGeometry(0.5, 8, 8);
+        const material = new THREE.MeshLambertMaterial({ color: 0x00aaff });
+        const projectile = new THREE.Mesh(geometry, material);
+        // Position projectile in front of character
+        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, this.character.rotation.y, 0));
+        projectile.position.copy(this.character.position).add(direction.clone().multiplyScalar(2.5));
+        projectile.userData = {
+            direction,
+            spawnTime: performance.now()
+        };
+        projectile.castShadow = true;
+        this.scene.add(projectile);
+        this.projectiles.push(projectile);
+    }
+    updateProjectiles() {
+        const now = performance.now();
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const projectile = this.projectiles[i];
+            projectile.position.add(projectile.userData.direction.clone().multiplyScalar(this.projectileSpeed));
+            // Remove projectile after 4 seconds or if out of bounds
+            const age = now - projectile.userData.spawnTime;
+            if (age > 4000 ||
+                Math.abs(projectile.position.x) > 100 ||
+                Math.abs(projectile.position.z) > 100) {
+                this.scene.remove(projectile);
+                this.projectiles.splice(i, 1);
+            }
+        }
     }
 }
 

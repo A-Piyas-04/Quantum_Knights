@@ -18,7 +18,7 @@ export function loadCharacter(scene, onLoadCallback) {
             const character = gltf.scene;
             
             // Scale down the character to fit the scene
-            character.scale.set(1.2, 1.2, 1.2);
+            character.scale.set(2.2, 2.2, 2.2);
             
             // Position the character above the terrain surface
             // Since terrain now has height variation, position character higher
@@ -62,6 +62,7 @@ export function loadCharacter(scene, onLoadCallback) {
             const fallbackCharacter = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
             
             fallbackCharacter.position.set(0, 3, 0);
+            fallbackCharacter.scale.set(2.2, 2.2, 2.2);
             fallbackCharacter.castShadow = true;
             fallbackCharacter.receiveShadow = true;
             
