@@ -10,16 +10,16 @@ export function createLighting() {
     lighting.directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
     lighting.directionalLight.position.set(20, 30, 10);
     
-    // Configure shadows for larger terrain
+    // Configure shadows for larger terrain (200x200)
     lighting.directionalLight.castShadow = true;
     lighting.directionalLight.shadow.mapSize.width = 4096;
     lighting.directionalLight.shadow.mapSize.height = 4096;
     lighting.directionalLight.shadow.camera.near = 0.5;
-    lighting.directionalLight.shadow.camera.far = 100;
-    lighting.directionalLight.shadow.camera.left = -60;
-    lighting.directionalLight.shadow.camera.right = 60;
-    lighting.directionalLight.shadow.camera.top = 60;
-    lighting.directionalLight.shadow.camera.bottom = -60;
+    lighting.directionalLight.shadow.camera.far = 150;
+    lighting.directionalLight.shadow.camera.left = -120;
+    lighting.directionalLight.shadow.camera.right = 120;
+    lighting.directionalLight.shadow.camera.top = 120;
+    lighting.directionalLight.shadow.camera.bottom = -120;
     lighting.directionalLight.shadow.bias = -0.0001;
     
     // Add ambient light for overall scene illumination
