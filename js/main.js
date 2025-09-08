@@ -5,7 +5,6 @@ import { createControls } from './modules/controls.js';
 import { createLighting } from './modules/lighting.js';
 import { createTerrain, getTerrainHeight } from './modules/terrain.js';
 import { loadCharacter } from './modules/character.js';
-import { EnemyManager } from './modules/enemy.js';
 
 class QuantumKnightsApp {
     constructor() {
@@ -15,7 +14,6 @@ class QuantumKnightsApp {
         this.controls = null;
         this.terrain = null;
         this.character = null;
-        this.enemyManager = null;
         
         // Movement and input state
         this.keys = {
@@ -58,8 +56,7 @@ class QuantumKnightsApp {
         this.terrain = createTerrain();
         this.scene.add(this.terrain);
         
-        // Initialize enemy manager
-        this.enemyManager = new EnemyManager(this.scene, this.terrain);
+        // Enemy manager removed for campus environment
         
         // Load character model
         loadCharacter(this.scene, (character) => {
@@ -68,8 +65,7 @@ class QuantumKnightsApp {
             this.camera = createCamera(this.character);
             console.log('Character added to scene');
             
-            // Spawn enemies after character is loaded
-            this.enemyManager.spawnEnemies(5);
+            // Enemies removed for peaceful campus environment
         });
         
         // Handle window resize
@@ -92,8 +88,7 @@ class QuantumKnightsApp {
         requestAnimationFrame(() => this.animate());
         // Update character movement
         this.updateCharacterMovement();
-        // Update enemies
-        this.updateEnemies();
+        // Enemy updates removed
         // Update projectiles
         this.updateProjectiles();
         // Update camera to follow character
@@ -183,9 +178,9 @@ class QuantumKnightsApp {
         if (moveX !== 0 || moveZ !== 0) {
             this.character.position.x += moveX;
             this.character.position.z += moveZ;
-            // Keep character within terrain bounds (200x200 terrain)
-            this.character.position.x = Math.max(-90, Math.min(90, this.character.position.x));
-            this.character.position.z = Math.max(-90, Math.min(90, this.character.position.z));
+            // Keep character within terrain bounds (500x500 terrain)
+            this.character.position.x = Math.max(-240, Math.min(240, this.character.position.x));
+            this.character.position.z = Math.max(-240, Math.min(240, this.character.position.z));
             // Snap character to face the correct direction for single-key movement
             if (targetAngle !== null && ((this.keys.w ^ this.keys.s) || (this.keys.a ^ this.keys.d))) {
                 this.character.rotation.y = targetAngle;
@@ -218,10 +213,7 @@ class QuantumKnightsApp {
         this.camera.followCharacter();
     }
     
-    updateEnemies() {
-        if (!this.enemyManager || !this.character) return;
-        this.enemyManager.update(this.character.position);
-    }
+    // Enemy system removed for campus environment
     
     handleAttack() {
         if (!this.character || this.isAttacking) return;
@@ -289,11 +281,11 @@ class QuantumKnightsApp {
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const projectile = this.projectiles[i];
             projectile.position.add(projectile.userData.direction.clone().multiplyScalar(this.projectileSpeed));
-            // Remove projectile after 4 seconds or if out of bounds
+            // Remove projectile after 4 seconds or if out of bounds (updated for bigger terrain)
             const age = now - projectile.userData.spawnTime;
             if (age > 4000 ||
-                Math.abs(projectile.position.x) > 100 ||
-                Math.abs(projectile.position.z) > 100) {
+                Math.abs(projectile.position.x) > 250 ||
+                Math.abs(projectile.position.z) > 250) {
                 this.scene.remove(projectile);
                 this.projectiles.splice(i, 1);
             }

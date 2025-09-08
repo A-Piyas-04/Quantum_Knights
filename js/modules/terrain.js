@@ -1,62 +1,22 @@
 /**
  * Terrain Module
- * Creates and configures realistic ground terrain with height variation
+ * Creates a university campus-like terrain with flat green ground, roads, and lake
  */
 
 export function createTerrain() {
-    // Create plane geometry with more subdivisions for detail - made bigger
-    const terrainGeometry = new THREE.PlaneGeometry(200, 200, 256, 256);
+    // Create larger flat plane geometry for bigger campus ground
+    const terrainGeometry = new THREE.PlaneGeometry(500, 500, 128, 128);
     
-    // Add height variation using noise
-    const vertices = terrainGeometry.attributes.position.array;
-    for (let i = 0; i < vertices.length; i += 3) {
-        const x = vertices[i];
-        const z = vertices[i + 1];
-        
-        // Create height variation using simple noise function
-        const height = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2 +
-                      Math.sin(x * 0.05) * Math.cos(z * 0.05) * 4 +
-                      Math.random() * 0.5;
-        
-        vertices[i + 2] = height;
-    }
-    
-    // Update geometry
-    terrainGeometry.attributes.position.needsUpdate = true;
-    terrainGeometry.computeVertexNormals();
-    
-    // Create realistic terrain material with multiple colors
-    const terrainMaterial = new THREE.MeshLambertMaterial({
-        color: 0x4a7c59, // More natural green
+    // Keep terrain flat (no height variation for campus)
+    // Create campus grass material with brighter green
+    const grassMaterial = new THREE.MeshLambertMaterial({
+        color: 0x66cc66, // Brighter campus green
         side: THREE.DoubleSide,
-        vertexColors: false,
         wireframe: false
     });
     
-    // Add vertex colors based on height
-    const colors = [];
-    const positionAttribute = terrainGeometry.attributes.position;
-    
-    for (let i = 0; i < positionAttribute.count; i++) {
-        const y = positionAttribute.getZ(i); // Height value
-        
-        // Color based on height: darker green for lower areas, lighter for higher
-        if (y < -1) {
-            colors.push(0.2, 0.4, 0.2); // Dark green for valleys
-        } else if (y < 1) {
-            colors.push(0.3, 0.6, 0.3); // Medium green for plains
-        } else if (y < 3) {
-            colors.push(0.4, 0.7, 0.4); // Light green for hills
-        } else {
-            colors.push(0.6, 0.8, 0.5); // Very light green for peaks
-        }
-    }
-    
-    terrainGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    terrainMaterial.vertexColors = true;
-    
-    // Create the terrain mesh
-    const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+    // Create the main terrain mesh
+    const terrain = new THREE.Mesh(terrainGeometry, grassMaterial);
     
     // Rotate the plane to be horizontal (ground)
     terrain.rotation.x = -Math.PI / 2;
@@ -67,77 +27,139 @@ export function createTerrain() {
     // Enable shadow receiving
     terrain.receiveShadow = true;
 
-    // Create a group to hold terrain and all elements
+    // Create a group to hold terrain and all campus elements
     const terrainGroup = new THREE.Group();
     terrainGroup.add(terrain);
 
-    // Add trees to the terrain
-    addTrees(terrainGroup, terrainGeometry);
+    // Add campus roads and paths
+    addCampusRoads(terrainGroup);
 
-    // Add a mini lake
-    addLake(terrainGroup);
+    // Add building areas (marked zones)
+    addBuildingAreas(terrainGroup);
+
+    // Add a large artificial lake
+    addCampusLake(terrainGroup);
 
     return terrainGroup;
 }
 
-// Function to add trees to the terrain
-function addTrees(terrainGroup, terrainGeometry) {
-    const treeCount = 50; // Number of trees
+// Function to add campus roads and pathways
+function addCampusRoads(terrainGroup) {
+    // Main road running north-south (scaled for bigger terrain)
+    const mainRoadGeometry = new THREE.PlaneGeometry(10, 400);
+    const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x404040 });
+    const mainRoad = new THREE.Mesh(mainRoadGeometry, roadMaterial);
+    mainRoad.rotation.x = -Math.PI / 2;
+    mainRoad.position.set(0, 0.05, 0);
+    mainRoad.receiveShadow = true;
+    terrainGroup.add(mainRoad);
     
-    for (let i = 0; i < treeCount; i++) {
-        // Random position on terrain
-        const x = (Math.random() - 0.5) * 180; // Within terrain bounds
-        const z = (Math.random() - 0.5) * 180;
-        
-        // Get height at this position (simplified)
-        const y = getTerrainHeight(x, z) + 1; // Slightly above terrain
-        
-        // Create tree trunk
-        const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.5, 3, 8);
-        const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-        trunk.position.set(x, y + 1.5, z);
-        trunk.castShadow = true;
-        trunk.receiveShadow = true;
-        
-        // Create tree foliage
-        const foliageGeometry = new THREE.SphereGeometry(2, 8, 6);
-        const foliageMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
-        const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
-        foliage.position.set(x, y + 4, z);
-        foliage.castShadow = true;
-        foliage.receiveShadow = true;
-        
-        terrainGroup.add(trunk);
-        terrainGroup.add(foliage);
-    }
+    // Cross road running east-west (scaled for bigger terrain)
+    const crossRoadGeometry = new THREE.PlaneGeometry(400, 10);
+    const crossRoad = new THREE.Mesh(crossRoadGeometry, roadMaterial);
+    crossRoad.rotation.x = -Math.PI / 2;
+    crossRoad.position.set(0, 0.05, 0);
+    crossRoad.receiveShadow = true;
+    terrainGroup.add(crossRoad);
+    
+    // Campus pathways (smaller paths)
+    const pathMaterial = new THREE.MeshLambertMaterial({ color: 0x8B7355 }); // Brown paths
+    
+    // Path to lake area (adjusted for bigger terrain)
+    const lakePathGeometry = new THREE.PlaneGeometry(6, 120);
+    const lakePath = new THREE.Mesh(lakePathGeometry, pathMaterial);
+    lakePath.rotation.x = -Math.PI / 2;
+    lakePath.position.set(100, 0.03, -60);
+    lakePath.receiveShadow = true;
+    terrainGroup.add(lakePath);
+    
+    // Circular path around central area (bigger for larger terrain)
+    const circularPathGeometry = new THREE.RingGeometry(40, 43, 32);
+    const circularPath = new THREE.Mesh(circularPathGeometry, pathMaterial);
+    circularPath.rotation.x = -Math.PI / 2;
+    circularPath.position.set(0, 0.03, 0);
+    circularPath.receiveShadow = true;
+    terrainGroup.add(circularPath);
 }
 
-// Function to add a mini lake
-function addLake(terrainGroup) {
-    // Create lake geometry
-    const lakeGeometry = new THREE.CircleGeometry(15, 32);
+// Function to add building areas (marked zones for future buildings)
+function addBuildingAreas(terrainGroup) {
+    const buildingAreaMaterial = new THREE.MeshLambertMaterial({ 
+        color: 0x8B7D6B, // Light brown for building foundations
+        transparent: true,
+        opacity: 0.7
+    });
+    
+    // Academic building area 1 (adjusted for bigger terrain)
+    const academicArea1 = new THREE.PlaneGeometry(40, 30);
+    const academic1 = new THREE.Mesh(academicArea1, buildingAreaMaterial);
+    academic1.rotation.x = -Math.PI / 2;
+    academic1.position.set(-100, 0.02, 80);
+    academic1.receiveShadow = true;
+    terrainGroup.add(academic1);
+    
+    // Academic building area 2 (adjusted for bigger terrain)
+    const academicArea2 = new THREE.PlaneGeometry(35, 35);
+    const academic2 = new THREE.Mesh(academicArea2, buildingAreaMaterial);
+    academic2.rotation.x = -Math.PI / 2;
+    academic2.position.set(80, 0.02, 100);
+    academic2.receiveShadow = true;
+    terrainGroup.add(academic2);
+    
+    // Library area (adjusted for bigger terrain)
+    const libraryArea = new THREE.PlaneGeometry(45, 35);
+    const library = new THREE.Mesh(libraryArea, buildingAreaMaterial);
+    library.rotation.x = -Math.PI / 2;
+    library.position.set(-80, 0.02, -100);
+    library.receiveShadow = true;
+    terrainGroup.add(library);
+    
+    // Student center area (adjusted for bigger terrain)
+    const studentCenterArea = new THREE.PlaneGeometry(50, 40);
+    const studentCenter = new THREE.Mesh(studentCenterArea, buildingAreaMaterial);
+    studentCenter.rotation.x = -Math.PI / 2;
+    studentCenter.position.set(120, 0.02, -50);
+    studentCenter.receiveShadow = true;
+    terrainGroup.add(studentCenter);
+}
+
+// Function to add a large artificial campus lake
+function addCampusLake(terrainGroup) {
+    // Create large lake geometry - irregular shape using multiple circles
+    const mainLakeGeometry = new THREE.CircleGeometry(35, 32);
     const lakeMaterial = new THREE.MeshLambertMaterial({ 
-        color: 0x4169E1,
+        color: 0x1E90FF, // Deep sky blue
         transparent: true,
         opacity: 0.8
     });
-    const lake = new THREE.Mesh(lakeGeometry, lakeMaterial);
+    const mainLake = new THREE.Mesh(mainLakeGeometry, lakeMaterial);
+    mainLake.rotation.x = -Math.PI / 2;
+    mainLake.position.set(130, 0.1, -130); // Positioned in corner of bigger campus
+    mainLake.receiveShadow = true;
+    terrainGroup.add(mainLake);
     
-    // Position lake on terrain
-    lake.rotation.x = -Math.PI / 2;
-    lake.position.set(30, 0.1, -40); // Slightly above terrain to avoid z-fighting
-    lake.receiveShadow = true;
+    // Add smaller connected pond (adjusted for bigger terrain)
+    const smallPondGeometry = new THREE.CircleGeometry(20, 24);
+    const smallPond = new THREE.Mesh(smallPondGeometry, lakeMaterial);
+    smallPond.rotation.x = -Math.PI / 2;
+    smallPond.position.set(90, 0.1, -100);
+    smallPond.receiveShadow = true;
+    terrainGroup.add(smallPond);
     
-    terrainGroup.add(lake);
+    // Lake border/shore area (adjusted for bigger terrain)
+    const shoreMaterial = new THREE.MeshLambertMaterial({ color: 0xC2B280 }); // Sandy shore
+    const shoreGeometry = new THREE.RingGeometry(35, 40, 32);
+    const shore = new THREE.Mesh(shoreGeometry, shoreMaterial);
+    shore.rotation.x = -Math.PI / 2;
+    shore.position.set(130, 0.05, -130);
+    shore.receiveShadow = true;
+    terrainGroup.add(shore);
 }
 
-// Helper function to get terrain height at a position
+// Helper function to get terrain height at a position (always 0 for flat campus)
 function getTerrainHeight(x, z) {
-    // Simplified height calculation matching the terrain generation (without random component)
-    const height = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2 +
-                  Math.sin(x * 0.05) * Math.cos(z * 0.05) * 4;
-    return height;
+    // Campus terrain is flat
+    return 0;
 }
 
 // Export the getTerrainHeight function for use in other modules
