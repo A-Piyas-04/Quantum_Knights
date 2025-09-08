@@ -151,11 +151,24 @@ class QuantumKnightsApp {
         if (!this.character) return;
         let moveX = 0;
         let moveZ = 0;
+        let targetAngle = null;
         // Calculate movement based on pressed keys
-        if (this.keys.w) moveZ -= this.moveSpeed;
-        if (this.keys.s) moveZ += this.moveSpeed;
-        if (this.keys.a) moveX -= this.moveSpeed;
-        if (this.keys.d) moveX += this.moveSpeed;
+        if (this.keys.w) {
+            moveZ -= this.moveSpeed;
+            targetAngle = 0;
+        }
+        if (this.keys.s) {
+            moveZ += this.moveSpeed;
+            targetAngle = Math.PI;
+        }
+        if (this.keys.a) {
+            moveX -= this.moveSpeed;
+            targetAngle = Math.PI / 2;
+        }
+        if (this.keys.d) {
+            moveX += this.moveSpeed;
+            targetAngle = -Math.PI / 2;
+        }
         // Apply movement to character
         if (moveX !== 0 || moveZ !== 0) {
             this.character.position.x += moveX;
@@ -163,14 +176,18 @@ class QuantumKnightsApp {
             // Keep character within terrain bounds (200x200 terrain)
             this.character.position.x = Math.max(-90, Math.min(90, this.character.position.x));
             this.character.position.z = Math.max(-90, Math.min(90, this.character.position.z));
-            // Smoothly rotate character to face movement direction
-            const targetAngle = Math.atan2(moveX, moveZ);
-            const currentAngle = this.character.rotation.y;
-            const lerpSpeed = 0.15;
-            let delta = targetAngle - currentAngle;
-            // Normalize delta to [-PI, PI]
-            delta = Math.atan2(Math.sin(delta), Math.cos(delta));
-            this.character.rotation.y += delta * lerpSpeed;
+            // Snap character to face the correct direction for single-key movement
+            if (targetAngle !== null && ((this.keys.w ^ this.keys.s) || (this.keys.a ^ this.keys.d))) {
+                this.character.rotation.y = targetAngle;
+            } else if (moveX !== 0 && moveZ !== 0) {
+                // Diagonal movement: keep smooth rotation
+                const diagAngle = Math.atan2(moveX, moveZ);
+                const currentAngle = this.character.rotation.y;
+                const lerpSpeed = 0.15;
+                let delta = diagAngle - currentAngle;
+                delta = Math.atan2(Math.sin(delta), Math.cos(delta));
+                this.character.rotation.y += delta * lerpSpeed;
+            }
         }
         // Raycast from above character straight down to terrain
         const rayOrigin = new THREE.Vector3(this.character.position.x, 100, this.character.position.z);
