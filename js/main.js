@@ -3,7 +3,7 @@ import { createCamera } from './modules/camera.js';
 import { createRenderer } from './modules/renderer.js';
 import { createControls } from './modules/controls.js';
 import { createLighting } from './modules/lighting.js';
-import { createTerrain } from './modules/terrain.js';
+import { createTerrain, getTerrainHeight } from './modules/terrain.js';
 import { loadCharacter } from './modules/character.js';
 
 class QuantumKnightsApp {
@@ -41,7 +41,8 @@ class QuantumKnightsApp {
         container.appendChild(this.renderer.domElement);
         
         // Create controls
-        this.controls = createControls(this.camera, this.renderer.domElement);
+        // Remove OrbitControls for fixed camera
+        // this.controls = createControls(this.camera, this.renderer.domElement); // Remove or comment out
         
         // Create lighting
         const lighting = createLighting();
@@ -76,16 +77,12 @@ class QuantumKnightsApp {
     
     animate() {
         requestAnimationFrame(() => this.animate());
-        
         // Update character movement
         this.updateCharacterMovement();
-        
         // Update camera to follow character
         this.updateCameraFollow();
-        
-        // Update controls
-        this.controls.update();
-        
+        // Remove controls update for fixed camera
+        // this.controls.update(); // Remove or comment out
         // Render scene
         this.renderer.render(this.scene, this.camera);
     }
@@ -162,24 +159,25 @@ class QuantumKnightsApp {
                 this.character.rotation.y = angle;
             }
         }
+        
+        // Always keep character above terrain
+        const terrainHeight = getTerrainHeight(this.character.position.x, this.character.position.z);
+        this.character.position.y = terrainHeight + 1; // 1 unit above terrain to keep feet above ground
     }
     
     updateCameraFollow() {
         if (!this.character) return;
-        
-        // Fixed offset relative to character: (0, +5, -10)
-        const offset = new THREE.Vector3(0, 5, -10);
-        
-        // Apply character's rotation to the offset
-        offset.applyQuaternion(this.character.quaternion);
-        
-        // Calculate desired camera position
-        const desiredPosition = this.character.position.clone().add(offset);
-        
-        // Smooth camera movement
-        this.camera.position.lerp(desiredPosition, 0.08);
-        
-        // Look at character (slightly above)
+        // Camera offset relative to character (fixed above and behind)
+        const offset = new THREE.Vector3(0, 10, 15); // 10 units above, 15 units behind
+        // Get character's forward direction
+        let forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(this.character.quaternion);
+        // Calculate camera position: always above and behind character
+        const cameraPosition = this.character.position.clone()
+            .add(forward.clone().multiplyScalar(-offset.z)) // behind
+            .add(new THREE.Vector3(0, offset.y, 0)); // above
+        this.camera.position.lerp(cameraPosition, 0.3); // Smooth follow
+        // Always look at character (slightly above for better view)
         const lookAtTarget = this.character.position.clone();
         lookAtTarget.y += 2;
         this.camera.lookAt(lookAtTarget);

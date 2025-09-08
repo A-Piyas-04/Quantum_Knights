@@ -134,11 +134,13 @@ function addLake(terrainGroup) {
 
 // Helper function to get terrain height at a position
 function getTerrainHeight(x, z) {
-    // Simplified height calculation matching the terrain generation
+    // Simplified height calculation matching the terrain generation (without random component)
     const height = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2 +
-                  Math.sin(x * 0.05) * Math.cos(z * 0.05) * 4 +
-                  Math.random() * 0.5;
+                  Math.sin(x * 0.05) * Math.cos(z * 0.05) * 4;
     return height;
 }
+
+// Export the getTerrainHeight function for use in other modules
+export { getTerrainHeight };
 
 export default createTerrain;
