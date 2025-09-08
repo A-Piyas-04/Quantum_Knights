@@ -37,6 +37,15 @@ export function loadCharacter(scene, onLoadCallback) {
                 }
             });
             
+            // Clear any existing characters first
+            const existingCharacters = scene.children.filter(child => 
+                child.userData && child.userData.isCharacter
+            );
+            existingCharacters.forEach(char => scene.remove(char));
+            
+            // Mark this as the main character
+            character.userData.isCharacter = true;
+            
             // Add character to scene
             scene.add(character);
             

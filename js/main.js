@@ -179,8 +179,8 @@ class QuantumKnightsApp {
             this.character.position.x += moveX;
             this.character.position.z += moveZ;
             // Keep character within terrain bounds (500x500 terrain)
-            this.character.position.x = Math.max(-240, Math.min(240, this.character.position.x));
-            this.character.position.z = Math.max(-240, Math.min(240, this.character.position.z));
+            this.character.position.x = Math.max(-250, Math.min(250, this.character.position.x));
+            this.character.position.z = Math.max(-250, Math.min(250, this.character.position.z));
             // Snap character to face the correct direction for single-key movement
             if (targetAngle !== null && ((this.keys.w ^ this.keys.s) || (this.keys.a ^ this.keys.d))) {
                 this.character.rotation.y = targetAngle;
@@ -284,8 +284,8 @@ class QuantumKnightsApp {
             // Remove projectile after 4 seconds or if out of bounds (updated for bigger terrain)
             const age = now - projectile.userData.spawnTime;
             if (age > 4000 ||
-                Math.abs(projectile.position.x) > 250 ||
-                Math.abs(projectile.position.z) > 250) {
+                Math.abs(projectile.position.x) > 260 ||
+                Math.abs(projectile.position.z) > 260) {
                 this.scene.remove(projectile);
                 this.projectiles.splice(i, 1);
             }
